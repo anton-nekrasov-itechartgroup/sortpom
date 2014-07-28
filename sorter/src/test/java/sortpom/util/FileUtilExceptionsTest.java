@@ -24,7 +24,7 @@ public class FileUtilExceptionsTest {
 
     @Before
     public void setup() {
-        originalFileUtil = new FileUtil();
+        originalFileUtil = new FileUtil(new SortOrderFileStore());
     }
 
     @Test

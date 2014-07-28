@@ -80,7 +80,7 @@ public class XmlProcessorTestUtil {
                 .setSortEntities("", "", false).createPluginParameters();
         final String xml = IOUtils.toString(new FileInputStream(inputFileName), UTF_8);
 
-        final FileUtil fileUtil = new FileUtil();
+        final FileUtil fileUtil = new FileUtil(new SortOrderFileStore());
         fileUtil.setup(pluginParameters);
 
         WrapperFactory wrapperFactory = new WrapperFactoryImpl(fileUtil);

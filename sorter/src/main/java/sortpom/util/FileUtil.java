@@ -15,6 +15,7 @@ import java.net.URL;
 public class FileUtil {
     private static final String DEFAULT_SORT_ORDER_FILENAME = "default_1_0_0";
     private static final String XML_FILE_EXTENSION = ".xml";
+    private final SortOrderFileStore sortOrderFileStore;
     private File pomFile;
     private String backupFileExtension;
     private String encoding;
@@ -22,6 +23,10 @@ public class FileUtil {
     private String predefinedSortOrder;
     private String newName;
     private File backupFile;
+
+    public FileUtil(SortOrderFileStore sortOrderFileStore) {
+        this.sortOrderFileStore = sortOrderFileStore;
+    }
 
     /** Initializes the class with sortpom parameters. */
     public void setup(PluginParameters parameters) {
@@ -120,37 +125,49 @@ public class FileUtil {
                 if (urlWrapper.isUrl()) {
                     inputStream = urlWrapper.openStream();
                 } else {
-                    inputStream = getFileFromRelativeOrClassPath();
+                    inputStream = openCustomSortOrderFile();
                 }
             } else if (predefinedSortOrder != null) {
                 inputStream = getPredefinedSortOrder(predefinedSortOrder);
             } else {
                 inputStream = getPredefinedSortOrder(DEFAULT_SORT_ORDER_FILENAME);
             }
-            return IOUtils.toString(inputStream, encoding);
+            
+            String sortOrderFile = IOUtils.toString(inputStream, encoding);
+            sortOrderFileStore.setContent(sortOrderFile, encoding);
+            
+            return sortOrderFile;
         } finally {
             IOUtils.closeQuietly(inputStream);
         }
     }
 
-    private InputStream getFileFromRelativeOrClassPath() throws IOException {
-        InputStream inputStream;
-        try {
-            inputStream = new FileInputStream(customSortOrderFile);
-        } catch (FileNotFoundException ex) {
-            // try classpath
-            try {
-                URL resource = this.getClass().getClassLoader().getResource(customSortOrderFile);
-                if (resource == null) {
-                    throw new IOException("Cannot find resource");
-                }
-                inputStream = resource.openStream();
-            } catch (IOException e1) {
-                throw new FileNotFoundException(String.format("Could not find %s or %s in classpath", new File(
-                        customSortOrderFile).getAbsolutePath(), customSortOrderFile));
-            }
+    /**
+     * Load custom sort order file from absolute or class path. If that fails, then try to retrieve it from a previous 
+     * invocation of the plugin.
+     * 
+     * @return
+     * @throws IOException
+     */
+    private InputStream openCustomSortOrderFile() throws IOException {
+        FileLoader fileLoader = new FileLoader(customSortOrderFile);
+
+        fileLoader.openAbsoluteFilePath();
+        if (fileLoader.isFound()) {
+            return fileLoader.getInputStream();
         }
-        return inputStream;
+
+        fileLoader.openFileFromClassPath();
+        if (fileLoader.isFound()) {
+            return fileLoader.getInputStream();
+        }
+
+        if (sortOrderFileStore.containsContent()) {
+            return sortOrderFileStore.getInputStream();
+        }
+
+        throw new FileNotFoundException(String.format("Could not find %s or %s in classpath", new File(
+                customSortOrderFile).getAbsolutePath(), customSortOrderFile));
     }
 
     private InputStream getPredefinedSortOrder(String predefinedSortOrder) throws IOException {

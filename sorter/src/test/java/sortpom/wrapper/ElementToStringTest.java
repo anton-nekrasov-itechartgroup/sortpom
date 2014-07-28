@@ -8,6 +8,7 @@ import org.junit.Test;
 import sortpom.parameter.PluginParameters;
 import sortpom.parameter.PluginParametersBuilder;
 import sortpom.util.FileUtil;
+import sortpom.util.SortOrderFileStoreFactory;
 import sortpom.wrapper.operation.HierarchyWrapper;
 
 import java.io.ByteArrayInputStream;
@@ -38,7 +39,7 @@ public class ElementToStringTest {
                 .setSortOrder("default_0_4_0.xml", null)
                 .setSortEntities("scope,groupId,artifactId", "groupId,artifactId", true).createPluginParameters();
 
-        FileUtil fileUtil = new FileUtil();
+        FileUtil fileUtil = new FileUtil(new SortOrderFileStoreFactory().getNewInstance());
         fileUtil.setup(pluginParameters);
 
         String xml = IOUtils.toString(new FileInputStream("src/test/resources/" + inputFileName), UTF_8);

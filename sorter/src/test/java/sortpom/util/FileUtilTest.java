@@ -81,7 +81,7 @@ public class FileUtilTest {
     }
 
     private FileUtil createFileUtil(String customSortOrderFile) {
-        FileUtil fileUtil = new FileUtil();
+        FileUtil fileUtil = new FileUtil(new SortOrderFileStore());
         PluginParametersBuilder pluginParametersBuilder = new PluginParametersBuilder();
         pluginParametersBuilder.setSortOrder(customSortOrderFile, null);
         pluginParametersBuilder.setEncoding("UTF-8");

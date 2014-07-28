@@ -24,6 +24,7 @@ import java.io.IOException;
  */
 public class SortPomImpl {
 
+    public static final String TEXT_FILE_NOT_SORTED = "The file %s is not sorted";
     private final FileUtil fileUtil;
     private final XmlProcessor xmlProcessor;
     private final WrapperFactoryImpl wrapperFactory;
@@ -36,14 +37,19 @@ public class SortPomImpl {
     private VerifyFailType verifyFailType;
 
     /**
-     * Instantiates a new sort pom mojo and initiates dependencies to other
+     * Instantiates a new sort pom mojo with dependencies to other
      * classes.
+     *
+     * @param fileUtil                       used to interact with file system
+     * @param xmlProcessor                   xml processing
+     * @param wrapperFactory                 sorts xml
+     * @param xmlProcessingInstructionParser handles processing instructions in the xml
      */
-    public SortPomImpl() {
-        fileUtil = new FileUtil();
-        wrapperFactory = new WrapperFactoryImpl(fileUtil);
-        xmlProcessor = new XmlProcessor(wrapperFactory);
-        xmlProcessingInstructionParser = new XmlProcessingInstructionParser();
+    SortPomImpl(FileUtil fileUtil, XmlProcessor xmlProcessor, WrapperFactoryImpl wrapperFactory, XmlProcessingInstructionParser xmlProcessingInstructionParser) {
+        this.fileUtil = fileUtil;
+        this.xmlProcessor = xmlProcessor;
+        this.wrapperFactory = wrapperFactory;
+        this.xmlProcessingInstructionParser = xmlProcessingInstructionParser;
     }
 
     public void setup(SortPomLogger log, PluginParameters pluginParameters) {
@@ -102,7 +108,7 @@ public class SortPomImpl {
 
         xmlProcessingInstructionParser.scanForIgnoredSections(originalXml);
         String xml = xmlProcessingInstructionParser.replaceIgnoredSections();
-        
+
         insertXmlInXmlProcessor(xml, errorMsg);
         xmlProcessor.sortXml();
         ByteArrayOutputStream sortedXmlOutputStream = null;
@@ -134,7 +140,7 @@ public class SortPomImpl {
                 throw new FailureException("Could not create backup file, extension name was empty");
             }
             fileUtil.backupFile();
-            log.info(String.format("Saved backup of %s to %s%s", pomFile.getAbsolutePath(), 
+            log.info(String.format("Saved backup of %s to %s%s", pomFile.getAbsolutePath(),
                     pomFile.getAbsolutePath(), backupFileExtension));
         }
     }
@@ -161,17 +167,17 @@ public class SortPomImpl {
             switch (verifyFailType) {
                 case WARN:
                     log.warn(xmlOrderedResult.getErrorMessage());
-                    log.warn(String.format("The file %s is not sorted", pomFileName));
+                    log.warn(String.format(TEXT_FILE_NOT_SORTED, pomFileName));
                     break;
                 case SORT:
                     log.info(xmlOrderedResult.getErrorMessage());
-                    log.info(String.format("The file %s is not sorted", pomFileName));
+                    log.info(String.format(TEXT_FILE_NOT_SORTED, pomFileName));
                     sortPom();
                     break;
                 case STOP:
                     log.error(xmlOrderedResult.getErrorMessage());
-                    log.error(String.format("The file %s is not sorted", pomFileName));
-                    throw new FailureException(String.format("The file %s is not sorted", pomFileName));
+                    log.error(String.format(TEXT_FILE_NOT_SORTED, pomFileName));
+                    throw new FailureException(String.format(TEXT_FILE_NOT_SORTED, pomFileName));
                 default:
                     log.error(xmlOrderedResult.getErrorMessage());
                     throw new IllegalStateException(verifyFailType.toString());

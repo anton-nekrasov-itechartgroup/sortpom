@@ -2,6 +2,7 @@ package sortpom.util;
 
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.IOUtils;
+import sortpom.SortPomDependencyInjector;
 import sortpom.SortPomImpl;
 import sortpom.logger.SortPomLogger;
 import sortpom.parameter.PluginParameters;
@@ -21,7 +22,7 @@ import static org.junit.Assert.*;
 class TestHandler {
     static final String UTF_8 = "UTF-8";
 
-    private final SortPomImpl sortPomImpl = new SortPomImpl();
+    private final SortPomImpl sortPomImpl = new SortPomDependencyInjector().createNewTestInstance();
 
     private final List<String> infoLogger = new ArrayList<String>();
     private final String inputResourceFileName;
@@ -171,7 +172,7 @@ class TestHandler {
     }
 
     private void performVerifyWithSort() {
-        SortPomImpl sortPomImpl = new SortPomImpl();
+        SortPomImpl sortPomImpl = new SortPomDependencyInjector().createNewTestInstance();
         sortPomImpl.setup(
                 createDummyLog(),
                 pluginParameters);

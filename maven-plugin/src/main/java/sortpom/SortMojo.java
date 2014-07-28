@@ -132,9 +132,11 @@ public class SortMojo extends AbstractMojo {
      */
     private boolean skip;
 
-    private final SortPomImpl sortPomImpl = new SortPomImpl();
+    private final SortPomImpl sortPomImpl;
 
     public SortMojo() {
+        SortPomDependencyInjector dependencyInjector = new SortPomDependencyInjector();
+        sortPomImpl = dependencyInjector.createSortPomImpl();
     }
 
     /**
